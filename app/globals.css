@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* 강제 라이트 모드 - 브라우저 다크모드 설정 무시 */
+html {
+  color-scheme: light only;
+}
+
+html, body {
+  background-color: #f9fafb !important;
+  color: #171717 !important;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
