@@ -1,46 +1,53 @@
 import Link from 'next/link'
 import { Product } from '@/lib/types'
 
-const statusLabels: Record<Product['status'], { label: string; color: string }> = {
+// 상품 카드: 목록과 홈에서 재사용
+// image_urls 배열의 첫 번째 사진을 대표 사진으로 표시
+// 사진이 없으면 이모지 placeholder
+
+const statusLabels = {
   selling: { label: '판매중', color: 'bg-green-100 text-green-700' },
   reserved: { label: '예약중', color: 'bg-yellow-100 text-yellow-700' },
   sold: { label: '거래완료', color: 'bg-gray-200 text-gray-600' },
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const statusInfo = statusLabels[product.status]
+  const status = statusLabels[product.status]
+  const thumbnail = product.image_urls?.[0] // 대표 사진 = 첫 번째
 
   return (
     <Link
       href={`/products/${product.id}`}
-      className="block overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:border-orange-400 hover:shadow-md"
+      className="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition"
     >
-      {/* 이미지 영역 (현재는 placeholder) */}
-      <div className="flex aspect-square w-full items-center justify-center bg-gray-100 text-5xl">
-        🛍️
+      {/* 이미지 영역: 1:1 비율 정사각형 */}
+      <div className="aspect-square w-full bg-gray-100 flex items-center justify-center overflow-hidden">
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={product.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="text-5xl">🛍️</span>
+        )}
       </div>
 
       {/* 정보 영역 */}
       <div className="p-3">
-        <div className="mb-1 flex items-center gap-2">
-          <span className={`rounded-full px-2 py-0.5 text-xs ${statusInfo.color}`}>
-            {statusInfo.label}
+        <div className="flex items-center justify-between mb-1">
+          <span className={`text-xs px-2 py-0.5 rounded-full ${status.color}`}>
+            {status.label}
           </span>
           {product.category && (
-            <span className="text-xs text-gray-500">{product.category}</span>
+            <span className="text-xs text-gray-400">{product.category}</span>
           )}
         </div>
-
-        <h3 className="line-clamp-2 text-sm font-medium text-gray-900">
+        <h3 className="font-medium text-sm text-gray-900 line-clamp-1 mb-1">
           {product.title}
         </h3>
-
-        <p className="mt-1 text-base font-bold text-gray-900">
+        <p className="text-base font-bold text-orange-600">
           {product.price === 0 ? '나눔' : `${product.price.toLocaleString()}원`}
-        </p>
-
-        <p className="mt-1 text-xs text-gray-400">
-          {new Date(product.created_at).toLocaleDateString('ko-KR')}
         </p>
       </div>
     </Link>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import ProductActions from './ProductActions'
 import CommentSection from '@/components/CommentSection'
 import SendMessageButton from '@/components/SendMessageButton'
+import ProductGallery from '@/components/ProductGallery'
 
 const statusLabels = {
   selling: { label: '판매중', color: 'bg-green-100 text-green-700' },
@@ -54,10 +55,17 @@ export default async function ProductDetailPage({
       </Link>
 
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-        {/* 이미지 영역 (placeholder) */}
-        <div className="flex aspect-video w-full items-center justify-center bg-gray-100 text-6xl">
-          🛍️
-        </div>
+        {/* 이미지 영역: 사진 있으면 가로 스크롤 갤러리, 없으면 이모지 */}
+{product.image_urls && product.image_urls.length > 0 ? (
+  <ProductGallery
+    images={product.image_urls}
+    title={product.title}
+  />
+) : (
+  <div className="flex aspect-video w-full items-center justify-center bg-gray-100 text-6xl">
+    🛍️
+  </div>
+)}
 
         {/* 정보 영역 */}
         <div className="p-6">
