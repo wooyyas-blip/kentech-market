@@ -1,5 +1,4 @@
-﻿// DB 테이블 타입 정의
-export type User = {
+﻿export type User = {
   id: string
   email: string
   nickname: string
@@ -14,7 +13,7 @@ export type Product = {
   price: number
   category: string | null
   status: 'selling' | 'reserved' | 'sold'
-  image_url: string | null
+  image_urls: string[]
   created_at: string
 }
 
@@ -63,4 +62,4 @@ export type Conversation = {
   lastMessage: string
   lastMessageAt: string
   unreadCount: number
-} 
+}
