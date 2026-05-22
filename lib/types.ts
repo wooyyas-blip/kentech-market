@@ -63,4 +63,4 @@ export type Conversation = {
   lastMessage: string
   lastMessageAt: string
   unreadCount: number
-}
+} 
