@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -18,6 +18,7 @@ export default function ProductActions({
   status,
   isOwner,
   isLoggedIn,
+  sellerId,
 }: {
   productId: string
   status: Status
@@ -27,6 +28,11 @@ export default function ProductActions({
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  // 디버깅용 — props 확인 (발표 전 제거)
+  useEffect(() => {
+    console.log('[ProductActions] props:', { productId, status, isOwner, isLoggedIn, sellerId })
+  }, [productId, status, isOwner, isLoggedIn, sellerId])
 
   const handleStatusChange = async (newStatus: Status) => {
     if (!confirm(`상태를 "${statusOptions.find(s => s.value === newStatus)?.label}"(으)로 바꿀까요?`)) {
