@@ -1,14 +1,10 @@
-'use client'
+﻿'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useState } from 'react'
 
-// 심부름 액션 컴포넌트 (Client Component)
-// 역할에 따라 다른 버튼을 보여주는 게 핵심 차별점
-// - 다른 사람 + 상태 open + 수락자 없음 → "수락하기"
-// - 요청자 본인 → 상태 변경 + 삭제
-// - 수락자 본인 → 완료 처리 + 수락 취소
 type Props = {
   errandId: string
   currentStatus: 'open' | 'in_progress' | 'done'
@@ -30,7 +26,6 @@ export default function ErrandActions({
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
 
-  // 수락하기: 제3자가 "내가 할게요" 누르는 액션
   const handleAccept = async () => {
     if (!confirm('이 심부름을 수락하시겠어요? 책임감 있게 진행해주세요!')) return
     setLoading(true)
@@ -46,7 +41,6 @@ export default function ErrandActions({
     router.refresh()
   }
 
-  // 수락 취소: 수락자가 마음 바뀜
   const handleCancelAccept = async () => {
     if (!confirm('수락을 취소할까요?')) return
     setLoading(true)
@@ -62,7 +56,6 @@ export default function ErrandActions({
     router.refresh()
   }
 
-  // 완료 처리: 요청자나 수락자가 끝났다고 표시
   const handleComplete = async () => {
     if (!confirm('심부름이 완료되었나요?')) return
     setLoading(true)
@@ -75,7 +68,6 @@ export default function ErrandActions({
     router.refresh()
   }
 
-  // 삭제: 요청자만, 단 진행중이 아닐 때
   const handleDelete = async () => {
     if (!confirm('정말 삭제할까요? 되돌릴 수 없어요.')) return
     setLoading(true)
@@ -90,7 +82,6 @@ export default function ErrandActions({
 
   return (
     <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
-      {/* 케이스 1: 제3자가 보고 있고, 아직 수락자 없는 open 상태 → 수락 버튼 */}
       {!isRequester && !isAcceptor && currentStatus === 'open' && !hasAcceptor && (
         <button
           onClick={handleAccept}
@@ -101,7 +92,6 @@ export default function ErrandActions({
         </button>
       )}
 
-      {/* 케이스 2: 수락자가 보고 있는 진행중 상태 → 완료/취소 */}
       {isAcceptor && currentStatus === 'in_progress' && (
         <>
           <button
@@ -121,7 +111,6 @@ export default function ErrandActions({
         </>
       )}
 
-      {/* 케이스 3: 요청자가 보고 있을 때 */}
       {isRequester && (
         <>
           {currentStatus === 'in_progress' && (
@@ -133,20 +122,30 @@ export default function ErrandActions({
               ✅ 완료 처리
             </button>
           )}
+
           {currentStatus !== 'in_progress' && (
-            <button
-              onClick={handleDelete}
-              disabled={loading}
-              className="ml-auto px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-            >
-              삭제
-            </button>
+            <div className="flex gap-2 ml-auto">
+              {currentStatus === 'open' && (
+                <Link
+                  href={`/errands/${errandId}/edit`}
+                  className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                >
+                  ✏️ 수정
+                </Link>
+              )}
+              <button
+                onClick={handleDelete}
+                disabled={loading}
+                className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >
+                삭제
+              </button>
+            </div>
           )}
         </>
       )}
 
-      {/* 케이스 4: 완료된 심부름 — 아무 버튼 없음 */}
-      {currentStatus === 'done' && (
+      {currentStatus === 'done' && !isRequester && (
         <p className="text-sm text-gray-500 mx-auto">
           ✨ 완료된 심부름이에요
         </p>

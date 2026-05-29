@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-// 회원가입 페이지 (Client Component)
-// 핵심 정책:
-// 1) @kentech.ac.kr 이메일만 — 클라 1차 + DB 트리거 2차 방어
-// 2) 비밀번호 최소 6자 (Supabase 기본 정책에 맞춤)
-// 3) 닉네임을 user_metadata로 함께 전달 → handle_new_user 트리거가 users 테이블에 INSERT 시 사용
-// 4) 가입 후 이메일 인증 메일 발송 (Supabase에서 "Confirm email" ON 가정)
-//    → 사용자는 메일 링크 클릭 → /auth/callback → 자동 로그인 → 홈
+// 회원가입 페이지 (Client Component) — v3
+// 변경 사항:
+// - v2까지: data.user/session 모양으로 성공/실패 판별 → Supabase 응답 형태 변동으로 오작동
+// - v3: "명시적 에러가 없으면 성공"으로 단순화 (메일은 어차피 발송됨)
+// - rate limit 에러도 한글화
+// - 응답 형태 확인용 console.log 추가 (발표 후 제거 가능)
 export default function SignupPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -26,25 +25,25 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
 
-    // 1. 켄텍 이메일 검증 (UX용 즉시 피드백)
+    // 1) 켄텍 이메일 검증
     if (!email.endsWith('@kentech.ac.kr')) {
       setError('켄텍 이메일(@kentech.ac.kr)만 가입할 수 있어요.')
       return
     }
 
-    // 2. 비밀번호 길이 검증
+    // 2) 비밀번호 길이
     if (password.length < 6) {
       setError('비밀번호는 6자 이상이어야 해요.')
       return
     }
 
-    // 3. 비밀번호 일치 검증
+    // 3) 비밀번호 일치
     if (password !== passwordConfirm) {
       setError('비밀번호가 일치하지 않아요.')
       return
     }
 
-    // 4. 닉네임 검증
+    // 4) 닉네임 길이
     const trimmedNickname = nickname.trim()
     if (trimmedNickname.length < 2) {
       setError('닉네임은 2자 이상이어야 해요.')
@@ -54,10 +53,6 @@ export default function SignupPage() {
     setLoading(true)
     const supabase = createClient()
 
-    // Supabase 회원가입
-    // - emailRedirectTo: 이메일 인증 링크 클릭 시 돌아올 URL
-    // - data: user_metadata에 들어감 → handle_new_user 트리거에서 raw_user_meta_data로 읽기 가능
-    //   (트리거에서 nickname을 users 테이블에 함께 INSERT하도록 수정 필요할 수 있음 — 아래 SQL 참고)
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -71,51 +66,76 @@ export default function SignupPage() {
 
     setLoading(false)
 
+    // 디버깅용 — 발표 후엔 지워도 됨 (브라우저 콘솔에서 응답 형태 확인 가능)
+    console.log('[Signup] response:', { data, signUpError })
+
+    // [분기 1] 명시적 에러
     if (signUpError) {
-      // 자주 보이는 에러 한글화
-      if (signUpError.message.includes('already registered')) {
-        setError('이미 가입된 이메일이에요. 로그인 페이지로 이동해주세요.')
-      } else if (signUpError.message.includes('Password should be')) {
+      const msg = signUpError.message.toLowerCase()
+      if (msg.includes('already registered') || msg.includes('user already')) {
+        setError('이미 가입된 이메일이에요. 로그인 페이지에서 로그인해주세요.')
+      } else if (msg.includes('rate limit')) {
+        setError('잠시 후 다시 시도해주세요. (이메일 발송 한도 초과)')
+      } else if (msg.includes('password')) {
         setError('비밀번호가 너무 약해요. 6자 이상으로 입력해주세요.')
+      } else if (msg.includes('database error')) {
+        // 트리거 에러 — DB 트리거 SQL이 안 돌아간 경우
+        setError('서버 오류가 발생했어요. 관리자에게 문의해주세요.')
       } else {
         setError(`가입 실패: ${signUpError.message}`)
       }
       return
     }
 
-    // 성공 — 보통 user 객체는 있는데 session은 null (이메일 인증 대기 상태)
-    if (data.user && !data.session) {
-      setSuccess(true)
+    // [분기 2] 이미 가입된 이메일 (Supabase가 보안상 200으로 위장)
+    //   → data.user.identities 배열이 비어있는 게 시그널
+    //   ⚠️ 첫 가입 케이스랑 헷갈리면 안 됨: 첫 가입 시 identities는 1개 들어있음
+    if (data?.user?.identities && data.user.identities.length === 0) {
+      setError('이미 가입된 이메일이에요. 로그인 페이지에서 로그인해주세요.')
       return
     }
 
-    // (드물게) 이메일 인증 OFF 상태면 즉시 세션이 발급됨 → 바로 홈으로
-    if (data.session) {
+    // [분기 3] 이메일 인증 OFF 환경 — 즉시 세션 발급
+    if (data?.session) {
       router.push('/')
       router.refresh()
+      return
     }
+
+    // [분기 4] 에러 없으면 = 성공으로 간주
+    //   Supabase는 정상 가입 시 200 + user 객체 + null session을 반환하는데
+    //   버전에 따라 user 객체 형태가 다양함. 명시적 에러가 없으면 메일이 발송된 거.
+    setSuccess(true)
   }
 
-  // 가입 성공 후 안내 화면
+  // 가입 성공 화면
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-md">
           <div className="mb-4 text-5xl">📬</div>
-          <h1 className="mb-3 text-2xl font-bold">메일을 확인해주세요!</h1>
+          <h1 className="mb-3 text-2xl font-bold">가입 신청 완료!</h1>
           <p className="mb-2 text-gray-700">
             <span className="font-medium">{email}</span> 로
           </p>
-          <p className="mb-6 text-gray-700">가입 확인 메일을 보냈어요.</p>
-          <p className="mb-6 text-sm text-gray-500">
-            메일의 링크를 클릭하시면 가입이 완료되고 자동으로 로그인돼요.
-          </p>
+          <p className="mb-6 text-gray-700">인증 메일을 보냈어요.</p>
+
+          <div className="mb-6 rounded-lg bg-orange-50 p-4 text-left text-sm text-gray-700">
+            <p className="mb-2 font-medium text-orange-700">📌 가입 완료 절차</p>
+            <ol className="list-decimal space-y-1 pl-5">
+              <li>메일함에서 켄근마켓 인증 메일을 열어요</li>
+              <li>메일 안의 인증 링크를 클릭해요</li>
+              <li>그리고 다시 돌아와서 <span className="font-medium">방금 정한 비밀번호</span>로 로그인하면 끝!</li>
+            </ol>
+          </div>
+
           <Link
             href="/login"
             className="inline-block rounded-md bg-orange-500 px-6 py-2 font-medium text-white hover:bg-orange-600"
           >
             로그인 페이지로
           </Link>
+
           <p className="mt-4 text-xs text-gray-400">
             메일이 안 오면 스팸함도 확인해보세요
           </p>

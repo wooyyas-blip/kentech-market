@@ -1,16 +1,20 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import ErrandCard from '@/components/ErrandCard'
 
-// 심부름 목록 페이지 (Server Component)
-// products/page.tsx와 같은 패턴이지만 status='open'을 위로 정렬
+// 변경 사항 (v2):
+// - select 절에 acceptor JOIN 추가 → ErrandCard에서 수락자 닉네임 표시 가능
+// - 카드 컴포넌트의 ErrandWithUsers 타입과 일치하게 됨
 export default async function ErrandsPage() {
   const supabase = await createClient()
 
   const { data: errands, error } = await supabase
     .from('errands')
-    .select('*')
-    .order('status', { ascending: true })  // open이 먼저 (알파벳순 우연히 맞음)
+    .select(`
+      *,
+      acceptor:users!errands_accepted_by_fkey (id, nickname, email)
+    `)
+    .order('status', { ascending: true })
     .order('created_at', { ascending: false })
 
   if (error) {
