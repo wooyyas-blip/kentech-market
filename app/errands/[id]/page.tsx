@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import ErrandActions from './ErrandActions'
 import CommentSection from '@/components/CommentSection'
 import SendMessageButton from '@/components/SendMessageButton'
 
-// 심부름 상세 페이지 (Server Component)
-// products/[id]/page.tsx와 같은 패턴, JOIN으로 요청자/수락자 정보 함께 조회
+// 변경 사항 (v3):
+// - 요청자 옆에 매너온도 + 받은 후기 개수 표시
 const statusLabels = {
   open: { label: '🙋 요청중', color: 'bg-blue-100 text-blue-700' },
   in_progress: { label: '🏃 진행중', color: 'bg-yellow-100 text-yellow-700' },
@@ -20,28 +20,31 @@ export default async function ErrandDetailPage({
   const { id } = await params
   const supabase = await createClient()
 
-  // 현재 로그인된 사용자
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 심부름 + 요청자 + 수락자 정보를 한 번에 JOIN
-  // ⚠️ FK 관계가 자동 추론 안 되면 컬럼명!fkey 형태로 명시
   const { data: errand, error } = await supabase
     .from('errands')
     .select(`
       *,
-      requester:users!errands_user_id_fkey (id, nickname, email),
-      acceptor:users!errands_accepted_by_fkey (id, nickname, email)
+      requester:users!errands_user_id_fkey (id, nickname, email, manner_temperature),
+      acceptor:users!errands_accepted_by_fkey (id, nickname, email, manner_temperature)
     `)
     .eq('id', id)
     .single()
 
   if (error || !errand) notFound()
 
+  // 요청자가 받은 후기 개수
+  const { count: requesterRatingCount } = await supabase
+    .from('ratings')
+    .select('id', { count: 'exact', head: true })
+    .eq('rated_id', errand.user_id)
+
   const status = statusLabels[(errand.status as keyof typeof statusLabels) || 'open']
   const isRequester = user?.id === errand.user_id
   const isAcceptor = user?.id === errand.accepted_by
+  const requesterTemp = Number(errand.requester?.manner_temperature ?? 36.5)
 
-  // 마감기한 표시
   const deadlineText = errand.deadline
     ? new Date(errand.deadline).toLocaleString('ko-KR', {
         year: 'numeric', month: 'long', day: 'numeric',
@@ -51,7 +54,6 @@ export default async function ErrandDetailPage({
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* 상태 뱃지 + 제목 */}
       <div className="mb-4">
         <span className={`text-sm px-3 py-1 rounded-full ${status.color}`}>
           {status.label}
@@ -63,14 +65,18 @@ export default async function ErrandDetailPage({
         💰 {errand.reward.toLocaleString()}원
       </p>
 
-      {/* 상세 정보 박스 */}
       <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2 text-sm">
-        {/* 요청자 줄 + 쪽지 버튼 (본인 글 아닐 때만) */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-gray-500">요청자: </span>
             <span className="font-medium">
               {errand.requester?.nickname || '알 수 없음'}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+              🌡️ {requesterTemp.toFixed(1)}℃
+            </span>
+            <span className="text-xs text-gray-500">
+              · 후기 {requesterRatingCount ?? 0}개
             </span>
           </div>
           {user && !isRequester && (
@@ -95,7 +101,6 @@ export default async function ErrandDetailPage({
         </div>
       </div>
 
-      {/* 설명 */}
       {errand.description && (
         <div className="mb-6">
           <h2 className="font-semibold mb-2">상세 설명</h2>
@@ -105,7 +110,6 @@ export default async function ErrandDetailPage({
         </div>
       )}
 
-      {/* 액션 버튼 (역할별로 다르게 표시) */}
       {user && (
         <ErrandActions
           errandId={errand.id}
@@ -123,7 +127,6 @@ export default async function ErrandDetailPage({
         </p>
       )}
 
-      {/* 댓글 섹션 */}
       <CommentSection postId={errand.id} postType="errand" />
     </div>
   )

@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -13,12 +13,14 @@ const statusOptions: { value: Status; label: string }[] = [
   { value: 'sold', label: '거래완료' },
 ]
 
+// 변경 사항 (v3):
+// - sold 상태 + 다른 사람 글이면 "후기 남기기" 버튼 추가
+// - 본인 글이면 기존대로 상태 변경/수정/삭제
 export default function ProductActions({
   productId,
   status,
   isOwner,
   isLoggedIn,
-  sellerId,
 }: {
   productId: string
   status: Status
@@ -29,50 +31,26 @@ export default function ProductActions({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  // 디버깅용 — props 확인 (발표 전 제거)
-  useEffect(() => {
-    console.log('[ProductActions] props:', { productId, status, isOwner, isLoggedIn, sellerId })
-  }, [productId, status, isOwner, isLoggedIn, sellerId])
-
   const handleStatusChange = async (newStatus: Status) => {
-    if (!confirm(`상태를 "${statusOptions.find(s => s.value === newStatus)?.label}"(으)로 바꿀까요?`)) {
-      return
-    }
-
+    if (!confirm(`상태를 "${statusOptions.find(s => s.value === newStatus)?.label}"(으)로 바꿀까요?`)) return
     setLoading(true)
     const supabase = createClient()
     const { error } = await supabase
       .from('products')
       .update({ status: newStatus })
       .eq('id', productId)
-
     setLoading(false)
-
-    if (error) {
-      alert(`상태 변경 실패: ${error.message}`)
-      return
-    }
-
+    if (error) return alert(`상태 변경 실패: ${error.message}`)
     router.refresh()
   }
 
   const handleDelete = async () => {
     if (!confirm('정말 삭제할까요? 되돌릴 수 없어요.')) return
-
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', productId)
-
+    const { error } = await supabase.from('products').delete().eq('id', productId)
     setLoading(false)
-
-    if (error) {
-      alert(`삭제 실패: ${error.message}`)
-      return
-    }
-
+    if (error) return alert(`삭제 실패: ${error.message}`)
     router.push('/products')
   }
 
@@ -126,12 +104,25 @@ export default function ProductActions({
     )
   }
 
+  // 다른 사람 상품 + 거래완료 → 후기 남기기 버튼
+  if (status === 'sold') {
+    return (
+      <Link
+        href={`/rate/product/${productId}`}
+        className="block w-full rounded-md bg-orange-500 px-4 py-3 text-center font-medium text-white hover:bg-orange-600"
+      >
+        📝 후기 남기기
+      </Link>
+    )
+  }
+
+  // 다른 사람 상품 + 판매중/예약중 → 쪽지
   return (
-    <button
-      onClick={() => alert('쪽지 기능은 6단계에서 연결할 거예요! 곧 사용 가능해요.')}
-      className="w-full rounded-md bg-orange-500 px-4 py-3 font-medium text-white hover:bg-orange-600"
+    <Link
+      href={`/messages/${productId}`}
+      className="block w-full rounded-md bg-orange-500 px-4 py-3 text-center font-medium text-white hover:bg-orange-600"
     >
       💬 쪽지 보내기
-    </button>
+    </Link>
   )
 }

@@ -2,9 +2,9 @@
   id: string
   email: string
   nickname: string
+  manner_temperature: number | null
   created_at: string
 }
-
 export type Product = {
   id: string
   user_id: string
@@ -16,7 +16,6 @@ export type Product = {
   image_urls: string[]
   created_at: string
 }
-
 export type Errand = {
   id: string
   user_id: string
@@ -28,12 +27,10 @@ export type Errand = {
   deadline: string | null
   created_at: string
 }
-
 export type ErrandWithUsers = Errand & {
-  requester?: { id: string; nickname: string; email: string } | null
-  acceptor?: { id: string; nickname: string; email: string } | null
+  requester?: { id: string; nickname: string; email: string; manner_temperature?: number | null } | null
+  acceptor?: { id: string; nickname: string; email: string; manner_temperature?: number | null } | null
 }
-
 export type Comment = {
   id: string
   user_id: string
@@ -42,11 +39,9 @@ export type Comment = {
   content: string
   created_at: string
 }
-
 export type CommentWithAuthor = Comment & {
   author?: { id: string; nickname: string } | null
 }
-
 export type Message = {
   id: string
   sender_id: string
@@ -55,7 +50,6 @@ export type Message = {
   is_read: boolean | null
   created_at: string
 }
-
 export type Conversation = {
   partnerId: string
   partnerNickname: string
