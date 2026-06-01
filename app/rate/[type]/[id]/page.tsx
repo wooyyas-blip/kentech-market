@@ -5,12 +5,9 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
-// 평가 페이지 — 거래 완료된 글에 대해 상대방 평가
-// URL: /rate/product/[productId] 또는 /rate/errand/[errandId]
-// 정책:
-// - 본인이 본인을 평가 불가 (DB CHECK)
-// - 동일 거래에 두 번 평가 불가 (DB UNIQUE + 클라 확인)
-// - 거래가 완료(sold/done) 상태여야 평가 가능
+// 변경 사항 (v2):
+// - 상품 평가도 심부름처럼 양방향 평가 가능 (판매자 ↔ 구매자)
+// - 구매자가 있으면 판매자/구매자 서로 평가 가능
 const ratingOptions = [
   { type: 'great', emoji: '🤩', label: '정말 좋았어요', desc: '+0.5℃', color: 'border-green-400 bg-green-50 text-green-700' },
   { type: 'good', emoji: '😊', label: '좋았어요', desc: '+0.2℃', color: 'border-blue-400 bg-blue-50 text-blue-700' },
@@ -32,16 +29,13 @@ export default function RatePage({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // 평가 대상 정보
   const [targetUserId, setTargetUserId] = useState<string | null>(null)
   const [targetNickname, setTargetNickname] = useState('')
   const [postTitle, setPostTitle] = useState('')
 
-  // 폼 상태
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [comment, setComment] = useState('')
 
-  // type 유효성 (product 또는 errand)
   const isProduct = type === 'product'
   const isErrand = type === 'errand'
 
@@ -59,7 +53,6 @@ export default function RatePage({
         return
       }
 
-      // 글 정보 조회
       const tableName = isProduct ? 'products' : 'errands'
       const { data: post, error: postErr } = await supabase
         .from(tableName)
@@ -73,7 +66,6 @@ export default function RatePage({
         return
       }
 
-      // 거래 완료 상태인지 확인
       if (isProduct && post.status !== 'sold') {
         setError('거래완료된 상품에만 후기를 남길 수 있어요.')
         setInitialLoading(false)
@@ -85,23 +77,29 @@ export default function RatePage({
         return
       }
 
-      // 평가 대상 결정
-      // 상품: 본인이 글쓴이면 → 평가 불가 (구매자 식별 어려움, MVP)
-      //       본인이 글쓴이가 아니면 → 글쓴이(판매자) 평가
-      // 심부름: 본인이 글쓴이(요청자)면 → 수락자 평가
-      //         본인이 수락자면 → 요청자 평가
+      // 평가 대상 결정 (양방향)
       let ratedUserId: string | null = null
       if (isProduct) {
+        // 상품: 판매자(user_id) ↔ 구매자(buyer_id)
         if (post.user_id === user.id) {
-          setError('본인이 등록한 상품엔 후기를 남길 수 없어요. (MVP 한계 — 구매자 평가는 다음 버전에서)')
+          // 본인이 판매자 → 구매자 평가
+          if (!post.buyer_id) {
+            setError('구매자가 지정되지 않은 상품은 평가할 수 없어요.')
+            setInitialLoading(false)
+            return
+          }
+          ratedUserId = post.buyer_id
+        } else if (post.buyer_id === user.id) {
+          // 본인이 구매자 → 판매자 평가
+          ratedUserId = post.user_id
+        } else {
+          setError('이 거래와 관련이 없어요.')
           setInitialLoading(false)
           return
         }
-        ratedUserId = post.user_id
       } else {
-        // 심부름
+        // 심부름: 요청자(user_id) ↔ 수락자(accepted_by)
         if (post.user_id === user.id) {
-          // 요청자 → 수락자 평가
           if (!post.accepted_by) {
             setError('수락자가 없는 심부름은 평가할 수 없어요.')
             setInitialLoading(false)
@@ -109,7 +107,6 @@ export default function RatePage({
           }
           ratedUserId = post.accepted_by
         } else if (post.accepted_by === user.id) {
-          // 수락자 → 요청자 평가
           ratedUserId = post.user_id
         } else {
           setError('이 심부름과 관련이 없어요.')
@@ -118,7 +115,7 @@ export default function RatePage({
         }
       }
 
-      // 이미 평가한 적 있는지 확인 (이중 안전망)
+      // 이미 평가한 적 있는지
       const fkColumn = isProduct ? 'product_id' : 'errand_id'
       const { data: existing } = await supabase
         .from('ratings')
@@ -134,7 +131,6 @@ export default function RatePage({
         return
       }
 
-      // 평가 대상 닉네임 조회
       const { data: targetUser } = await supabase
         .from('users')
         .select('nickname')
@@ -182,7 +178,6 @@ export default function RatePage({
     setSubmitting(false)
 
     if (insertErr) {
-      // UNIQUE 제약 위반
       if (insertErr.message.includes('duplicate')) {
         setError('이미 이 거래에 후기를 남겼어요.')
       } else {
@@ -191,7 +186,6 @@ export default function RatePage({
       return
     }
 
-    // 성공 → 원래 상세 페이지로
     router.push(isProduct ? `/products/${id}` : `/errands/${id}`)
     router.refresh()
   }
@@ -215,7 +209,7 @@ export default function RatePage({
       <p className="text-sm text-gray-600 mb-1">
         <span className="font-medium text-gray-900">{targetNickname}</span>님과의 거래는 어땠나요?
       </p>
-      <p className="text-xs text-gray-500 mb-6">"{postTitle}"</p>
+      <p className="text-xs text-gray-500 mb-6">&ldquo;{postTitle}&rdquo;</p>
 
       <div className="space-y-2 mb-6">
         {ratingOptions.map((opt) => (
@@ -241,9 +235,7 @@ export default function RatePage({
       </div>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">
-          한마디 남기기 (선택)
-        </label>
+        <label className="block text-sm font-medium mb-1">한마디 남기기 (선택)</label>
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -275,7 +267,7 @@ export default function RatePage({
       </div>
 
       <p className="text-xs text-gray-400 mt-4 text-center">
-        ⚠️ 후기는 수정/삭제할 수 없어요. 신중하게 작성해주세요.
+        ⚠️ 후기는 수정/삭제할 수 없어요.
       </p>
     </div>
   )

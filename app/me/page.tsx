@@ -3,9 +3,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import RatingList from '@/components/RatingList'
 
-// 변경 사항 (v2):
-// - "받은 후기" 섹션 추가 (매너온도 산정 근거 보여주기)
-// - 후기 개수도 함께 표시
+// 변경 사항 (v3):
+// - "내가 작성한 후기" 안내 추가 (혼란 방지 — 받은 후기만 표시되는 점 명시)
 export default async function MyPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -17,7 +16,6 @@ export default async function MyPage() {
     .eq('id', user.id)
     .single()
 
-  // 받은 후기 개수
   const { count: ratingCount } = await supabase
     .from('ratings')
     .select('id', { count: 'exact', head: true })
@@ -30,7 +28,6 @@ export default async function MyPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">👤 내 정보</h1>
 
-      {/* 매너온도 카드 */}
       <div className="rounded-xl bg-gradient-to-br from-orange-50 to-yellow-50 p-6 mb-6 text-center border border-orange-100">
         <p className="text-sm text-gray-600 mb-2">매너온도</p>
         <p className="text-5xl font-bold text-orange-600 mb-2">
@@ -42,7 +39,6 @@ export default async function MyPage() {
         </p>
       </div>
 
-      {/* 기본 정보 */}
       <div className="rounded-xl bg-white border border-gray-200 p-4 mb-6 space-y-3">
         <Row label="닉네임" value={profile?.nickname || '-'} />
         <Row label="이메일" value={profile?.email || user.email || '-'} sub="🔒 켄텍 이메일은 변경 불가" />
@@ -54,7 +50,6 @@ export default async function MyPage() {
         />
       </div>
 
-      {/* 메뉴 */}
       <div className="space-y-2 mb-6">
         <Link
           href="/me/edit-nickname"
@@ -76,9 +71,11 @@ export default async function MyPage() {
         </Link>
       </div>
 
-      {/* 받은 후기 */}
       <section>
-        <h2 className="text-lg font-bold mb-3">💬 받은 후기 ({ratingCount ?? 0})</h2>
+        <h2 className="text-lg font-bold mb-1">💬 받은 후기 ({ratingCount ?? 0})</h2>
+        <p className="text-xs text-gray-500 mb-3">
+          💡 내가 작성한 후기는 상대방 프로필에 표시돼요
+        </p>
         <RatingList userId={user.id} />
       </section>
     </div>

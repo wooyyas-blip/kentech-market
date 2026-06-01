@@ -14,9 +14,9 @@ type Props = {
   currentUserId: string
 }
 
-// 변경 사항 (v3):
-// - done 상태일 때 요청자/수락자에게 "후기 남기기" 버튼 노출
-//   (서로 상대방을 평가할 수 있음)
+// 변경 사항 (v4):
+// - 수락자는 더 이상 "완료" 처리 못 함 (사용자 피드백 반영)
+// - 요청자만 완료 가능 — 거래 신뢰성 강화
 export default function ErrandActions({
   errandId,
   currentStatus,
@@ -54,7 +54,7 @@ export default function ErrandActions({
   }
 
   const handleComplete = async () => {
-    if (!confirm('심부름이 완료되었나요?')) return
+    if (!confirm('심부름이 완료되었나요? 완료 처리 후엔 되돌릴 수 없어요.')) return
     setLoading(true)
     const { error } = await supabase
       .from('errands')
@@ -76,7 +76,6 @@ export default function ErrandActions({
 
   return (
     <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
-      {/* 케이스 1: 제3자, open, 수락자 없음 → 수락 */}
       {!isRequester && !isAcceptor && currentStatus === 'open' && !hasAcceptor && (
         <button
           onClick={handleAccept}
@@ -87,16 +86,11 @@ export default function ErrandActions({
         </button>
       )}
 
-      {/* 케이스 2: 수락자, 진행중 → 완료/취소 */}
       {isAcceptor && currentStatus === 'in_progress' && (
         <>
-          <button
-            onClick={handleComplete}
-            disabled={loading}
-            className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
-          >
-            ✅ 완료했어요
-          </button>
+          <div className="flex-1 py-3 px-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm text-center">
+            🏃 도와드리는 중이에요. 요청자가 완료 처리할 때까지 기다려주세요.
+          </div>
           <button
             onClick={handleCancelAccept}
             disabled={loading}
@@ -107,14 +101,13 @@ export default function ErrandActions({
         </>
       )}
 
-      {/* 케이스 3: 요청자 */}
       {isRequester && (
         <>
           {currentStatus === 'in_progress' && (
             <button
               onClick={handleComplete}
               disabled={loading}
-              className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50"
+              className="flex-1 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 font-medium"
             >
               ✅ 완료 처리
             </button>
@@ -142,7 +135,6 @@ export default function ErrandActions({
         </>
       )}
 
-      {/* 케이스 4: done 상태 + 요청자 또는 수락자 → 후기 남기기 */}
       {currentStatus === 'done' && (isRequester || isAcceptor) && (
         <Link
           href={`/rate/errand/${errandId}`}
@@ -152,7 +144,6 @@ export default function ErrandActions({
         </Link>
       )}
 
-      {/* 케이스 5: done 상태 + 제3자 */}
       {currentStatus === 'done' && !isRequester && !isAcceptor && (
         <p className="text-sm text-gray-500 mx-auto">✨ 완료된 심부름이에요</p>
       )}

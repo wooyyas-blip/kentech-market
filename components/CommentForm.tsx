@@ -1,11 +1,13 @@
-'use client'
+﻿'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-// 댓글 입력 폼 (Client Component)
-// 비로그인 사용자에게는 로그인 유도 메시지 표시
+const COMMENT_MAX = 200
+
+// 변경 사항 (v2):
+// - 댓글 200자 제한 + 카운터 (악성글 방어, 김서정 피드백)
 type Props = {
   postId: string
   postType: 'product' | 'errand'
@@ -48,8 +50,8 @@ export default function CommentForm({ postId, postType, isLoggedIn }: Props) {
       alert('댓글 작성 실패: ' + error.message)
       return
     }
-    setContent('') // 입력창 비우기
-    router.refresh() // 댓글 목록 새로고침
+    setContent('')
+    router.refresh()
   }
 
   return (
@@ -59,9 +61,11 @@ export default function CommentForm({ postId, postType, isLoggedIn }: Props) {
         onChange={(e) => setContent(e.target.value)}
         placeholder="댓글을 입력하세요..."
         rows={2}
+        maxLength={COMMENT_MAX}
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 text-sm"
       />
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-400">{content.length}/{COMMENT_MAX}</span>
         <button
           type="submit"
           disabled={loading || !content.trim()}

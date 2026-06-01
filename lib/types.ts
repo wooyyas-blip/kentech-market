@@ -8,6 +8,7 @@
 export type Product = {
   id: string
   user_id: string
+  buyer_id: string | null
   title: string
   description: string | null
   price: number
