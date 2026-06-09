@@ -2,20 +2,33 @@
 import ProductCard from '@/components/ProductCard'
 import Link from 'next/link'
 
-// 중고거래 목록 페이지 (Server Component)
-// 최신순으로 모든 상품 표시
-export default async function ProductsPage() {
+const CATEGORIES = ['전체', '생활용품', '전자기기', '도서', '의류', '기타']
+
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>
+}) {
+  const { category } = await searchParams
+  const active = category && CATEGORIES.includes(category) ? category : '전체'
+
   const supabase = await createClient()
 
-  const { data: products, error } = await supabase
+  let query = supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false })
 
+  if (active !== '전체') {
+    query = query.eq('category', active)
+  }
+
+  const { data: products, error } = await query
+
   return (
     <div className="mx-auto max-w-5xl p-6">
       {/* 헤더 */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">🛍️ 중고거래</h1>
         <Link
           href="/products/new"
@@ -23,6 +36,27 @@ export default async function ProductsPage() {
         >
           + 상품 등록
         </Link>
+      </div>
+
+      {/* 카테고리 탭 */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {CATEGORIES.map((c) => {
+          const href = c === '전체' ? '/products' : `/products?category=${encodeURIComponent(c)}`
+          const isActive = c === active
+          return (
+            <Link
+              key={c}
+              href={href}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-indigo-500 text-white'
+                  : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {c}
+            </Link>
+          )
+        })}
       </div>
 
       {/* 에러 */}
@@ -36,10 +70,10 @@ export default async function ProductsPage() {
       {!error && products?.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
           <p className="mb-2 text-4xl">🛒</p>
-          <p className="font-medium text-gray-700">아직 등록된 상품이 없어요.</p>
-          <p className="mt-1 text-sm text-gray-500">
-            첫 번째 상품을 등록해보세요!
+          <p className="font-medium text-gray-700">
+            {active === '전체' ? '아직 등록된 상품이 없어요.' : `'${active}' 카테고리에 상품이 없어요.`}
           </p>
+          <p className="mt-1 text-sm text-gray-500">첫 번째 상품을 등록해보세요!</p>
         </div>
       )}
 

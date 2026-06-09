@@ -131,7 +131,7 @@ export default async function ProductDetailPage({
           </div>
 
           <p className="mb-6 text-xs text-gray-400">
-            {new Date(product.created_at).toLocaleString('ko-KR')} 등록
+            {new Date(product.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} 등록
           </p>
 
           <ProductActions
