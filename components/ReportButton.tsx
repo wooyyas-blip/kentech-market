@@ -5,9 +5,16 @@ import { useState } from 'react'
 
 type Props = { reportedId: string; productId?: string; errandId?: string }
 
+const TYPES = [
+  { value: 'unpaid', label: '💸 미입금' },
+  { value: 'noshow', label: '🚫 노쇼(약속 불이행)' },
+  { value: 'other', label: '❓ 기타' },
+]
+
 export default function ReportButton({ reportedId, productId, errandId }: Props) {
   const supabase = createClient()
   const [open, setOpen] = useState(false)
+  const [type, setType] = useState('noshow')
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -26,6 +33,7 @@ export default function ReportButton({ reportedId, productId, errandId }: Props)
       reported_id: reportedId,
       product_id: productId ?? null,
       errand_id: errandId ?? null,
+      report_type: type,
       reason: trimmed,
     })
     setLoading(false)
@@ -42,10 +50,26 @@ export default function ReportButton({ reportedId, productId, errandId }: Props)
       </button>
       {open && (
         <div className="mt-2 space-y-2 rounded-lg border border-gray-200 p-3">
+          <div className="flex flex-wrap gap-1">
+            {TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setType(t.value)}
+                className={`px-2 py-1 text-xs rounded-full border ${
+                  type === t.value
+                    ? 'border-red-400 bg-red-50 text-red-600'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
           <textarea
             value={reason} onChange={(e) => setReason(e.target.value)}
             rows={2} maxLength={200}
-            placeholder="신고 사유 (예: 거래 후 입금하지 않음)"
+            placeholder="신고 사유 (예: 약속 시간에 안 나타남)"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-red-400 text-sm"
           />
           <div className="flex justify-end gap-2">

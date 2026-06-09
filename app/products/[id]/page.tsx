@@ -8,6 +8,7 @@ import SendMessageButton from '@/components/SendMessageButton'
 import ReportButton from '@/components/ReportButton'
 import AdminDeleteButton from '@/components/AdminDeleteButton'
 import OfferSection from '@/components/OfferSection'
+import UserFlags from '@/components/UserFlags'
 
 const statusLabels = {
   selling: { label: '판매중', color: 'bg-green-100 text-green-700' },
@@ -29,7 +30,7 @@ export default async function ProductDetailPage({
     .from('products')
     .select(`
       *,
-      seller:users!products_user_id_fkey (id, nickname, email, manner_temperature, is_unpaid),
+      seller:users!products_user_id_fkey (id, nickname, email, manner_temperature),
       buyer:users!products_buyer_id_fkey (id, nickname, email, manner_temperature)
     `)
     .eq('id', id)
@@ -43,6 +44,17 @@ export default async function ProductDetailPage({
     .from('ratings')
     .select('id', { count: 'exact', head: true })
     .eq('rated_id', product.user_id)
+
+  // 판매자/구매자 표식 조회
+  const flagUserIds = [product.user_id, product.buyer_id].filter(Boolean) as string[]
+  const flagsByUser: Record<string, { flag_type: string }[]> = {}
+  if (flagUserIds.length > 0) {
+    const { data: flags } = await supabase
+      .from('user_flags').select('user_id, flag_type').in('user_id', flagUserIds)
+    for (const f of flags ?? []) {
+      (flagsByUser[f.user_id] ??= []).push({ flag_type: f.flag_type })
+    }
+  }
 
   const statusInfo = statusLabels[product.status as keyof typeof statusLabels]
   const sellerTemp = Number(product.seller?.manner_temperature ?? 36.5)
@@ -83,6 +95,7 @@ export default async function ProductDetailPage({
             {product.price === 0 ? '나눔' : `${product.price.toLocaleString()}원`}
           </p>
 
+          {/* 판매자 */}
           <div className="mb-3 rounded-md bg-gray-50 p-3 text-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -95,9 +108,7 @@ export default async function ProductDetailPage({
                     🌡️ {sellerTemp.toFixed(1)}℃
                   </span>
                   <span className="text-xs text-gray-500">· 후기 {sellerRatingCount ?? 0}개</span>
-                  {product.seller?.is_unpaid && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠️ 미입금자</span>
-                  )}
+                  <UserFlags flags={flagsByUser[product.user_id] ?? []} />
                 </div>
                 <p className="text-xs text-gray-500">{product.seller?.email}</p>
               </div>
@@ -112,14 +123,30 @@ export default async function ProductDetailPage({
             )}
           </div>
 
+          {/* 구매자/구매요청자 */}
           {product.buyer && (
             <div className="mb-4 rounded-md bg-blue-50 p-3 text-sm">
-              <p className="text-blue-700">
+              <p className="mb-2 text-blue-700">
                 {product.status === 'sold' ? '구매자' : '구매 요청자'}
               </p>
-              <Link href={`/users/${product.buyer_id}`} className="font-medium text-gray-900 hover:underline">
-                {product.buyer.nickname}
+              <Link
+                href={`/users/${product.buyer_id}`}
+                className="flex items-center justify-between rounded-lg bg-white border border-blue-200 px-3 py-2 hover:bg-blue-50 transition"
+              >
+                <span className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium text-gray-900">{product.buyer.nickname}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                    🌡️ {Number(product.buyer.manner_temperature ?? 36.5).toFixed(1)}℃
+                  </span>
+                  <UserFlags flags={flagsByUser[product.buyer_id] ?? []} />
+                </span>
+                <span className="text-xs text-blue-600 whitespace-nowrap">프로필 보기 →</span>
               </Link>
+              {user && isOwner && (
+                <div className="mt-2">
+                  <ReportButton reportedId={product.buyer_id} productId={product.id} />
+                </div>
+              )}
             </div>
           )}
 

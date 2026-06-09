@@ -1,18 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Conversation } from '@/lib/types'
 
-// 쪽지함 (Server Component)
-// 핵심 로직: 모든 메시지를 가져와서 "상대방별로 묶기"
-// 같은 사람과 주고받은 메시지들의 가장 최근 1건만 표시
 export default async function MessagesPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 내가 보낸 것 + 받은 것 모두 가져오기
   const { data: messages, error } = await supabase
     .from('messages')
     .select(`
@@ -27,18 +23,14 @@ export default async function MessagesPage() {
     return <p className="text-red-500 p-8">에러: {error.message}</p>
   }
 
-  // 상대방 ID 기준으로 대화 묶기 (가장 최근 메시지만)
-  // 발표 포인트: messages 테이블에는 raw 데이터만 있지만 
-  // UI에서는 "대화방" 단위로 그룹핑하는 로직 필요
   const conversationMap = new Map<string, Conversation>()
   for (const msg of messages || []) {
     const partner = msg.sender_id === user.id ? msg.receiver : msg.sender
     if (!partner) continue
-    
-    const partnerId = partner.id
-    if (conversationMap.has(partnerId)) continue // 이미 최신 거 들어있음
 
-    // 안 읽은 메시지 개수 (내가 받은 것 중 is_read=false)
+    const partnerId = partner.id
+    if (conversationMap.has(partnerId)) continue
+
     const unreadCount = (messages || []).filter(
       (m) => m.sender_id === partnerId && m.receiver_id === user.id && !m.is_read
     ).length
@@ -66,28 +58,37 @@ export default async function MessagesPage() {
       ) : (
         <ul className="space-y-2">
           {conversations.map((c) => (
-            <li key={c.partnerId}>
-              <Link
-                href={`/messages/${c.partnerId}`}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold">{c.partnerNickname}</span>
-                    {c.unreadCount > 0 && (
-                      <span className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
-                        {c.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 truncate">{c.lastMessage}</p>
+            <li
+              key={c.partnerId}
+              className="flex items-center gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition"
+            >
+              {/* 대화 내용 → 대화방으로 */}
+              <Link href={`/messages/${c.partnerId}`} className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-semibold">{c.partnerNickname}</span>
+                  {c.unreadCount > 0 && (
+                    <span className="text-xs px-2 py-0.5 bg-red-500 text-white rounded-full">
+                      {c.unreadCount}
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs text-gray-400 ml-3 whitespace-nowrap">
+                <p className="text-sm text-gray-600 truncate">{c.lastMessage}</p>
+              </Link>
+
+              <div className="flex flex-col items-end gap-2 ml-2">
+                <span className="text-xs text-gray-400 whitespace-nowrap">
                   {new Date(c.lastMessageAt).toLocaleDateString('ko-KR', {
-                    month: 'numeric', day: 'numeric',
+                    month: 'numeric', day: 'numeric', timeZone: 'Asia/Seoul',
                   })}
                 </span>
-              </Link>
+                {/* 상대 프로필로 */}
+                <Link
+                  href={`/users/${c.partnerId}`}
+                  className="text-xs text-indigo-600 hover:underline whitespace-nowrap"
+                >
+                  👤 프로필
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

@@ -43,7 +43,13 @@ export default async function MessageDetailPage({
         <Link href="/messages" className="text-gray-500 hover:text-gray-900">
           ←
         </Link>
-        <h1 className="text-lg font-bold">{partner.nickname}</h1>
+        {/* 상대 이름 → 프로필 */}
+        <Link href={`/users/${partnerId}`} className="text-lg font-bold hover:underline">
+          {partner.nickname}
+        </Link>
+        <Link href={`/users/${partnerId}`} className="ml-auto text-xs text-indigo-600 hover:underline">
+          👤 프로필 보기
+        </Link>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-2 mb-4">
