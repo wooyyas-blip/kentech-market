@@ -2,9 +2,16 @@
 import Link from 'next/link'
 import ErrandCard from '@/components/ErrandCard'
 
-// 변경 사항 (v2):
-// - select 절에 acceptor JOIN 추가 → ErrandCard에서 수락자 닉네임 표시 가능
-// - 카드 컴포넌트의 ErrandWithUsers 타입과 일치하게 됨
+// 정렬 우선순위: 요청중(0) → 진행중(1) → 마감됨(2) → 완료(3)
+function sortRank(errand: { status?: string | null; deadline?: string | null }): number {
+  const status = errand.status || 'open'
+  if (status === 'done') return 3
+  const expired = !!errand.deadline && new Date(errand.deadline).getTime() < Date.now()
+  if (expired) return 2
+  if (status === 'in_progress') return 1
+  return 0 // open
+}
+
 export default async function ErrandsPage() {
   const supabase = await createClient()
 
@@ -14,12 +21,13 @@ export default async function ErrandsPage() {
       *,
       acceptor:users!errands_accepted_by_fkey (id, nickname, email)
     `)
-    .order('status', { ascending: true })
     .order('created_at', { ascending: false })
 
   if (error) {
     return <p className="text-red-500 p-8">에러: {error.message}</p>
   }
+
+  const sorted = (errands ?? []).slice().sort((a, b) => sortRank(a) - sortRank(b))
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -38,9 +46,9 @@ export default async function ErrandsPage() {
         </Link>
       </div>
 
-      {errands && errands.length > 0 ? (
+      {sorted.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {errands.map((e) => (
+          {sorted.map((e) => (
             <ErrandCard key={e.id} errand={e} />
           ))}
         </div>

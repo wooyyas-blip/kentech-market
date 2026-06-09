@@ -4,12 +4,8 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import GoogleOneTap from '@/components/GoogleOneTap'
 
-// 로그인 페이지 (Client Component) — v2
-// 변경 사항:
-// - useSearchParams() 사용하는 부분을 LoginFormInner로 분리하고 Suspense로 감쌈
-//   (Next.js 16에서 prerender 시 suspense boundary 필수)
-// - 로직 자체는 v1과 동일 (signInWithPassword)
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -24,7 +20,6 @@ export default function LoginPage() {
   )
 }
 
-// 실제 폼 로직 — useSearchParams를 쓰니까 Suspense 안에 있어야 함
 function LoginFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -48,12 +43,7 @@ function LoginFormInner() {
 
     setLoading(true)
     const supabase = createClient()
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     setLoading(false)
 
     if (signInError) {
@@ -85,64 +75,57 @@ function LoginFormInner() {
         </div>
       )}
 
+      {authError === 'not_kentech' && (
+        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+          켄텍 이메일(@kentech.ac.kr) 계정만 로그인할 수 있어요.
+        </div>
+      )}
+
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">
-            이메일
-          </label>
+          <label htmlFor="email" className="mb-1 block text-sm font-medium">이메일</label>
           <input
-            id="email"
-            type="email"
-            value={email}
+            id="email" type="email" value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@kentech.ac.kr"
-            required
-            autoComplete="email"
+            placeholder="example@kentech.ac.kr" required autoComplete="email"
             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">
-            비밀번호
-          </label>
+          <label htmlFor="password" className="mb-1 block text-sm font-medium">비밀번호</label>
           <input
-            id="password"
-            type="password"
-            value={password}
+            id="password" type="password" value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            autoComplete="current-password"
+            placeholder="••••••••" required autoComplete="current-password"
             className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:bg-gray-400"
-        >
+        <button type="submit" disabled={loading}
+          className="w-full rounded-md bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:bg-gray-400">
           {loading ? '로그인 중...' : '로그인'}
         </button>
       </form>
 
+      <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
+        <div className="h-px flex-1 bg-gray-200"></div>
+        또는
+        <div className="h-px flex-1 bg-gray-200"></div>
+      </div>
+
+      <GoogleOneTap />
+
       {error && (
-        <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
       )}
 
       <div className="mt-6 text-center text-sm text-gray-600">
         켄근마켓이 처음이세요?{' '}
-        <Link href="/signup" className="font-medium text-indigo-600 hover:underline">
-          회원가입
-        </Link>
+        <Link href="/signup" className="font-medium text-indigo-600 hover:underline">회원가입</Link>
       </div>
 
-      <p className="mt-6 text-xs text-gray-500">
-        🔐 켄텍 학생(@kentech.ac.kr)만 가입할 수 있어요
-      </p>
+      <p className="mt-6 text-xs text-gray-500">🔐 켄텍 학생(@kentech.ac.kr)만 가입할 수 있어요</p>
     </>
   )
 }

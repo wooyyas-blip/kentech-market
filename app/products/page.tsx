@@ -4,6 +4,9 @@ import Link from 'next/link'
 
 const CATEGORIES = ['전체', '생활용품', '전자기기', '도서', '의류', '기타']
 
+// 상태 정렬 우선순위: 판매중 → 예약중 → 거래완료
+const STATUS_ORDER: Record<string, number> = { selling: 0, reserved: 1, sold: 2 }
+
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -24,6 +27,13 @@ export default async function ProductsPage({
   }
 
   const { data: products, error } = await query
+
+  // 상태 우선순위로 정렬 (같은 상태면 최신순 유지)
+  const sorted = (products ?? []).slice().sort((a, b) => {
+    const sa = STATUS_ORDER[a.status || 'selling'] ?? 0
+    const sb = STATUS_ORDER[b.status || 'selling'] ?? 0
+    return sa - sb
+  })
 
   return (
     <div className="mx-auto max-w-5xl p-6">
@@ -67,7 +77,7 @@ export default async function ProductsPage({
       )}
 
       {/* 빈 상태 */}
-      {!error && products?.length === 0 && (
+      {!error && sorted.length === 0 && (
         <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
           <p className="mb-2 text-4xl">🛒</p>
           <p className="font-medium text-gray-700">
@@ -78,9 +88,9 @@ export default async function ProductsPage({
       )}
 
       {/* 상품 그리드 */}
-      {products && products.length > 0 && (
+      {sorted.length > 0 && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {products.map((product) => (
+          {sorted.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
