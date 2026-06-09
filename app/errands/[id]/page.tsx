@@ -67,7 +67,7 @@ export default async function ErrandDetailPage({
       </div>
       <h1 className="text-2xl font-bold mb-2">{errand.title}</h1>
 
-      <p className="text-3xl font-bold text-orange-600 mb-6">
+      <p className="text-3xl font-bold text-indigo-600 mb-6">
         💰 {errand.reward.toLocaleString()}원
       </p>
 
@@ -78,7 +78,7 @@ export default async function ErrandDetailPage({
             <Link href={`/users/${errand.user_id}`} className="font-medium hover:underline">
               {errand.requester?.nickname || '알 수 없음'}
             </Link>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
               🌡️ {requesterTemp.toFixed(1)}℃
             </span>
             <span className="text-xs text-gray-500">

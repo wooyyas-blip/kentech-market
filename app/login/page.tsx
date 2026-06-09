@@ -98,7 +98,7 @@ function LoginFormInner() {
             placeholder="example@kentech.ac.kr"
             required
             autoComplete="email"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
@@ -114,14 +114,14 @@ function LoginFormInner() {
             placeholder="••••••••"
             required
             autoComplete="current-password"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-orange-500 px-4 py-2 font-medium text-white hover:bg-orange-600 disabled:bg-gray-400"
+          className="w-full rounded-md bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:bg-gray-400"
         >
           {loading ? '로그인 중...' : '로그인'}
         </button>
@@ -135,7 +135,7 @@ function LoginFormInner() {
 
       <div className="mt-6 text-center text-sm text-gray-600">
         켄근마켓이 처음이세요?{' '}
-        <Link href="/signup" className="font-medium text-orange-600 hover:underline">
+        <Link href="/signup" className="font-medium text-indigo-600 hover:underline">
           회원가입
         </Link>
       </div>

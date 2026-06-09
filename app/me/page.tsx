@@ -28,9 +28,9 @@ export default async function MyPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">👤 내 정보</h1>
 
-      <div className="rounded-xl bg-gradient-to-br from-orange-50 to-yellow-50 p-6 mb-6 text-center border border-orange-100">
+      <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 mb-6 text-center border border-indigo-100">
         <p className="text-sm text-gray-600 mb-2">매너온도</p>
-        <p className="text-5xl font-bold text-orange-600 mb-2">
+        <p className="text-5xl font-bold text-indigo-600 mb-2">
           🌡️ {temp.toFixed(1)}℃
         </p>
         <p className="text-sm text-gray-700 font-medium">{tempLabel}</p>

@@ -66,7 +66,7 @@ export default function NewErrandPage() {
             <label className="block text-sm font-medium">제목 *</label>
             <span className="text-xs text-gray-400">{title.length}/{TITLE_MAX}</span>
           </div>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={TITLE_MAX} placeholder="예: 우체국 가서 택배 보내주세요" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={TITLE_MAX} placeholder="예: 우체국 가서 택배 보내주세요" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
@@ -74,23 +74,23 @@ export default function NewErrandPage() {
             <label className="block text-sm font-medium">상세 설명</label>
             <span className="text-xs text-gray-400">{description.length}/{DESC_MAX}</span>
           </div>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={DESC_MAX} placeholder="구체적인 위치, 준비물, 주의사항 등을 적어주세요" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={DESC_MAX} placeholder="구체적인 위치, 준비물, 주의사항 등을 적어주세요" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">보상 (원) *</label>
-          <input type="number" value={reward} onChange={(e) => setReward(e.target.value)} required min={0} placeholder="3000" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <input type="number" value={reward} onChange={(e) => setReward(e.target.value)} required min={0} placeholder="3000" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">마감기한</label>
-          <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
           <p className="text-xs text-gray-500 mt-1">언제까지 끝내야 하나요? (선택)</p>
         </div>
 
         {error && <p className="text-sm text-red-500">{error}</p>}
 
-        <button type="submit" disabled={loading} className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50">{loading ? '등록 중...' : '요청 올리기'}</button>
+        <button type="submit" disabled={loading} className="w-full py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50">{loading ? '등록 중...' : '요청 올리기'}</button>
       </form>
     </div>
   )

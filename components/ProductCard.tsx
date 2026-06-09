@@ -46,7 +46,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <h3 className="font-medium text-sm text-gray-900 line-clamp-1 mb-1">
           {product.title}
         </h3>
-        <p className="text-base font-bold text-orange-600">
+        <p className="text-base font-bold text-indigo-600">
           {product.price === 0 ? '나눔' : `${product.price.toLocaleString()}원`}
         </p>
       </div>

@@ -120,8 +120,8 @@ export default function SignupPage() {
           </p>
           <p className="mb-6 text-gray-700">인증 메일을 보냈어요.</p>
 
-          <div className="mb-6 rounded-lg bg-orange-50 p-4 text-left text-sm text-gray-700">
-            <p className="mb-2 font-medium text-orange-700">📌 가입 완료 절차</p>
+          <div className="mb-6 rounded-lg bg-indigo-50 p-4 text-left text-sm text-gray-700">
+            <p className="mb-2 font-medium text-indigo-700">📌 가입 완료 절차</p>
             <ol className="list-decimal space-y-1 pl-5">
               <li>메일함에서 켄근마켓 인증 메일을 열어요</li>
               <li>메일 안의 인증 링크를 클릭해요</li>
@@ -131,7 +131,7 @@ export default function SignupPage() {
 
           <Link
             href="/login"
-            className="inline-block rounded-md bg-orange-500 px-6 py-2 font-medium text-white hover:bg-orange-600"
+            className="inline-block rounded-md bg-indigo-500 px-6 py-2 font-medium text-white hover:bg-indigo-600"
           >
             로그인 페이지로
           </Link>
@@ -163,7 +163,7 @@ export default function SignupPage() {
               placeholder="example@kentech.ac.kr"
               required
               autoComplete="email"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
             <p className="mt-1 text-xs text-gray-500">
               켄텍 이메일(@kentech.ac.kr)만 가능해요
@@ -183,7 +183,7 @@ export default function SignupPage() {
               required
               minLength={2}
               maxLength={20}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -200,7 +200,7 @@ export default function SignupPage() {
               required
               minLength={6}
               autoComplete="new-password"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -217,14 +217,14 @@ export default function SignupPage() {
               required
               minLength={6}
               autoComplete="new-password"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-orange-500 px-4 py-2 font-medium text-white hover:bg-orange-600 disabled:bg-gray-400"
+            className="w-full rounded-md bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:bg-gray-400"
           >
             {loading ? '가입 처리 중...' : '회원가입'}
           </button>
@@ -238,7 +238,7 @@ export default function SignupPage() {
 
         <div className="mt-6 text-center text-sm text-gray-600">
           이미 계정이 있으세요?{' '}
-          <Link href="/login" className="font-medium text-orange-600 hover:underline">
+          <Link href="/login" className="font-medium text-indigo-600 hover:underline">
             로그인
           </Link>
         </div>

@@ -19,7 +19,7 @@ export default async function ProductsPage() {
         <h1 className="text-2xl font-bold">🛍️ 중고거래</h1>
         <Link
           href="/products/new"
-          className="rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600"
+          className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600"
         >
           + 상품 등록
         </Link>

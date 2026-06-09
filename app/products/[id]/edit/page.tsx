@@ -91,7 +91,7 @@ export default function EditProductPage({
     return (
       <div className="max-w-xl mx-auto px-4 py-8">
         <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>
-        <button onClick={() => router.push('/products')} className="mt-4 text-sm text-orange-600 hover:underline">← 상품 목록으로</button>
+        <button onClick={() => router.push('/products')} className="mt-4 text-sm text-indigo-600 hover:underline">← 상품 목록으로</button>
       </div>
     )
   }
@@ -105,7 +105,7 @@ export default function EditProductPage({
             <label className="block text-sm font-medium">제목 *</label>
             <span className="text-xs text-gray-400">{title.length}/{TITLE_MAX}</span>
           </div>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={TITLE_MAX} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={TITLE_MAX} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
@@ -113,17 +113,17 @@ export default function EditProductPage({
             <label className="block text-sm font-medium">상품 설명</label>
             <span className="text-xs text-gray-400">{description.length}/{DESC_MAX}</span>
           </div>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={DESC_MAX} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={DESC_MAX} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">가격 (원) *</label>
-          <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required min={0} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500" />
+          <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required min={0} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500" />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">카테고리</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500">
             <option value="">선택 안함</option>
             <option value="생활용품">생활용품</option>
             <option value="전자기기">전자기기</option>
@@ -138,7 +138,7 @@ export default function EditProductPage({
 
         <div className="flex gap-2">
           <button type="button" onClick={() => router.push(`/products/${id}`)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">취소</button>
-          <button type="submit" disabled={submitting} className="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50">{submitting ? '저장 중...' : '저장'}</button>
+          <button type="submit" disabled={submitting} className="flex-1 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50">{submitting ? '저장 중...' : '저장'}</button>
         </div>
       </form>
     </div>

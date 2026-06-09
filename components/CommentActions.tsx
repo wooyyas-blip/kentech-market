@@ -68,13 +68,13 @@ export default function CommentActions({ commentId, initialContent }: Props) {
           rows={2}
           maxLength={COMMENT_MAX}
           autoFocus
-          className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+          className="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:border-indigo-500 text-sm"
         />
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-400">{draft.length}/{COMMENT_MAX}</span>
           <div className="flex gap-2">
             <button onClick={handleCancelEdit} disabled={loading} className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900">취소</button>
-            <button onClick={handleSaveEdit} disabled={loading || !draft.trim()} className="px-3 py-1 text-xs bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50">
+            <button onClick={handleSaveEdit} disabled={loading || !draft.trim()} className="px-3 py-1 text-xs bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50">
               {loading ? '저장 중...' : '저장'}
             </button>
           </div>
@@ -85,7 +85,7 @@ export default function CommentActions({ commentId, initialContent }: Props) {
 
   return (
     <div className="flex items-center gap-2">
-      <button onClick={handleStartEdit} className="text-xs text-gray-400 hover:text-orange-500">수정</button>
+      <button onClick={handleStartEdit} className="text-xs text-gray-400 hover:text-indigo-500">수정</button>
       <button onClick={handleDelete} disabled={loading} className="text-xs text-gray-400 hover:text-red-500 disabled:opacity-50">삭제</button>
     </div>
   )

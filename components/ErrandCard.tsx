@@ -39,7 +39,7 @@ export default function ErrandCard({ errand }: { errand: ErrandWithUsers }) {
           {status.label}
         </span>
       </div>
-      <p className="text-lg font-bold text-orange-600 mb-1">
+      <p className="text-lg font-bold text-indigo-600 mb-1">
         💰 {errand.reward.toLocaleString()}원
       </p>
       <p className="text-xs text-gray-500">⏰ {dDayText}</p>

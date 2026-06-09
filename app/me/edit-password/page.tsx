@@ -82,7 +82,7 @@ export default function EditPasswordPage() {
         <p className="text-sm text-gray-600 mb-6">다음 로그인부터 새 비밀번호를 사용해주세요.</p>
         <Link
           href="/me"
-          className="inline-block px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+          className="inline-block px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
         >
           내 정보로
         </Link>
@@ -106,7 +106,7 @@ export default function EditPasswordPage() {
             onChange={(e) => setCurrentPw(e.target.value)}
             required
             autoComplete="current-password"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -120,7 +120,7 @@ export default function EditPasswordPage() {
             minLength={6}
             autoComplete="new-password"
             placeholder="6자 이상"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -133,7 +133,7 @@ export default function EditPasswordPage() {
             required
             minLength={6}
             autoComplete="new-password"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -142,7 +142,7 @@ export default function EditPasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          className="w-full py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50"
         >
           {loading ? '변경 중...' : '비밀번호 변경'}
         </button>

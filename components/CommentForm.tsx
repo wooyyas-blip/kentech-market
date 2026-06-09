@@ -62,14 +62,14 @@ export default function CommentForm({ postId, postType, isLoggedIn }: Props) {
         placeholder="댓글을 입력하세요..."
         rows={2}
         maxLength={COMMENT_MAX}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 text-sm"
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 text-sm"
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-400">{content.length}/{COMMENT_MAX}</span>
         <button
           type="submit"
           disabled={loading || !content.trim()}
-          className="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          className="px-4 py-2 bg-indigo-500 text-white text-sm rounded-lg hover:bg-indigo-600 disabled:opacity-50"
         >
           {loading ? '작성 중...' : '댓글 작성'}
         </button>

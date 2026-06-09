@@ -109,7 +109,7 @@ export default function EditNicknamePage() {
             minLength={2}
             maxLength={20}
             placeholder="2자 이상 20자 이하"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -118,7 +118,7 @@ export default function EditNicknamePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          className="w-full py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50"
         >
           {loading ? '저장 중...' : '저장'}
         </button>

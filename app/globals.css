@@ -1,6 +1,7 @@
+﻿@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.min.css");
 @import "tailwindcss";
 
-/* 강제 라이트 모드 - 브라우저 다크모드 설정 무시 */
+/* 강제 라이트 모드 - 브라우저 다크모드 무시 */
 html {
   color-scheme: light only;
 }
@@ -11,5 +12,8 @@ html, body {
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }

@@ -11,7 +11,7 @@ const typeLabels: Record<string, { emoji: string; label: string; color: string }
   great: { emoji: '🤩', label: '정말 좋았어요', color: 'text-green-700 bg-green-50' },
   good: { emoji: '😊', label: '좋았어요', color: 'text-blue-700 bg-blue-50' },
   normal: { emoji: '😐', label: '보통이에요', color: 'text-gray-700 bg-gray-100' },
-  bad: { emoji: '😞', label: '아쉬웠어요', color: 'text-orange-700 bg-orange-50' },
+  bad: { emoji: '😞', label: '아쉬웠어요', color: 'text-indigo-700 bg-indigo-50' },
   terrible: { emoji: '😡', label: '불쾌했어요', color: 'text-red-700 bg-red-50' },
 }
 

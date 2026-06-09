@@ -80,7 +80,7 @@ export default function ErrandActions({
         <button
           onClick={handleAccept}
           disabled={loading}
-          className="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 font-medium"
+          className="flex-1 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 font-medium"
         >
           🙋 내가 도와줄게요
         </button>
@@ -88,7 +88,7 @@ export default function ErrandActions({
 
       {isAcceptor && currentStatus === 'in_progress' && (
         <>
-          <div className="flex-1 py-3 px-4 bg-yellow-50 text-yellow-800 rounded-lg text-sm text-center">
+          <div className="flex-1 py-3 px-4 bg-indigo-100 text-yellow-800 rounded-lg text-sm text-center">
             🏃 도와드리는 중이에요. 요청자가 완료 처리할 때까지 기다려주세요.
           </div>
           <button
@@ -138,7 +138,7 @@ export default function ErrandActions({
       {currentStatus === 'done' && (isRequester || isAcceptor) && (
         <Link
           href={`/rate/errand/${errandId}`}
-          className="flex-1 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-center font-medium"
+          className="flex-1 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 text-center font-medium"
         >
           📝 후기 남기기
         </Link>

@@ -7,9 +7,8 @@ import { useState } from 'react'
 const MAX_IMAGES = 3
 const TITLE_MAX = 50
 const DESC_MAX = 500
+const PRICE_MAX = 10000000
 
-// 변경 사항 (v3):
-// - 제목 50자 / 설명 500자 제한 + 실시간 카운터 (악성 장문 글 방어, 김서정 피드백)
 export default function NewProductPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -27,14 +26,12 @@ export default function NewProductPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-
     const newFiles = Array.from(files)
     const totalCount = images.length + newFiles.length
     if (totalCount > MAX_IMAGES) {
       alert(`사진은 최대 ${MAX_IMAGES}장까지만 올릴 수 있어요.`)
       return
     }
-
     const newPreviews = newFiles.map((file) => URL.createObjectURL(file))
     setImages([...images, ...newFiles])
     setPreviews([...previews, ...newPreviews])
@@ -60,6 +57,10 @@ export default function NewProductPage() {
     const priceNum = parseInt(price, 10)
     if (isNaN(priceNum) || priceNum < 0) {
       setError('가격을 올바르게 입력해주세요.')
+      return
+    }
+    if (priceNum > PRICE_MAX) {
+      setError(`가격은 최대 ${PRICE_MAX.toLocaleString()}원까지 등록할 수 있어요.`)
       return
     }
 
@@ -126,7 +127,7 @@ export default function NewProductPage() {
               </div>
             ))}
             {images.length < MAX_IMAGES && (
-              <label className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition">
+              <label className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition">
                 <span className="text-2xl text-gray-400">📷</span>
                 <span className="text-xs text-gray-500 mt-1">사진 추가</span>
                 <input type="file" accept="image/*" multiple onChange={handleFileChange} style={{ display: 'none' }} />
@@ -147,7 +148,7 @@ export default function NewProductPage() {
             required
             maxLength={TITLE_MAX}
             placeholder="예: 자취방 의자 팝니다"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -162,7 +163,7 @@ export default function NewProductPage() {
             rows={4}
             maxLength={DESC_MAX}
             placeholder="상품 상태, 거래 가능한 장소 등을 적어주세요"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -174,9 +175,11 @@ export default function NewProductPage() {
             onChange={(e) => setPrice(e.target.value)}
             required
             min={0}
+            max={PRICE_MAX}
             placeholder="0이면 나눔"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           />
+          <p className="text-xs text-gray-500 mt-1">최대 {PRICE_MAX.toLocaleString()}원까지 등록할 수 있어요.</p>
         </div>
 
         <div>
@@ -184,7 +187,7 @@ export default function NewProductPage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500"
           >
             <option value="">선택 안함</option>
             <option value="생활용품">생활용품</option>
@@ -200,7 +203,7 @@ export default function NewProductPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50"
+          className="w-full py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50"
         >
           {loading ? '등록 중... (사진 업로드 시간이 걸려요)' : '상품 등록'}
         </button>

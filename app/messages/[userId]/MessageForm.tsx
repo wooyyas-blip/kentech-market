@@ -45,12 +45,12 @@ export default function MessageForm({ receiverId }: { receiverId: string }) {
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="메시지를 입력하세요..."
-        className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-orange-500 text-sm"
+        className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-indigo-500 text-sm"
       />
       <button
         type="submit"
         disabled={loading || !content.trim()}
-        className="px-5 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 disabled:opacity-50 text-sm font-medium"
+        className="px-5 py-2 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 disabled:opacity-50 text-sm font-medium"
       >
         전송
       </button>

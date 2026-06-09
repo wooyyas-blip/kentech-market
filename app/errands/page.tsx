@@ -32,7 +32,7 @@ export default async function ErrandsPage() {
         </div>
         <Link
           href="/errands/new"
-          className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+          className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600"
         >
           + 심부름 요청
         </Link>

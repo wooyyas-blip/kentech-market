@@ -56,7 +56,7 @@ export default async function AdminPage() {
                   )}
                 </p>
                 <p className="text-sm mt-1 whitespace-pre-wrap"><span className="text-gray-500">사유: </span>{r.reason}</p>
-                {link && <Link href={link} className="text-xs text-orange-600 hover:underline">관련 게시글 보기 →</Link>}
+                {link && <Link href={link} className="text-xs text-indigo-600 hover:underline">관련 게시글 보기 →</Link>}
                 <AdminReportActions reportId={r.id} reportedId={r.reported_id} status={r.status} isUnpaid={!!r.reported?.is_unpaid} />
               </li>
             )
