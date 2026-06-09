@@ -1,131 +1,21 @@
-﻿'use client'
-
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
-import GoogleOneTap from '@/components/GoogleOneTap'
+﻿import GoogleOneTap from '@/components/GoogleOneTap'
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+      <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-md text-center">
         <h1 className="mb-2 text-3xl font-bold">🥕 켄근마켓</h1>
-        <p className="mb-6 text-gray-600">로그인해서 거래를 시작해요</p>
-        <Suspense fallback={<div className="text-sm text-gray-500">로딩 중...</div>}>
-          <LoginFormInner />
-        </Suspense>
+        <p className="mb-1 text-gray-600">켄텍 학생 전용 중고거래 + 심부름</p>
+        <p className="mb-8 text-sm text-gray-400">@kentech.ac.kr 계정으로 시작하세요</p>
+
+        <div className="flex justify-center">
+          <GoogleOneTap />
+        </div>
+
+        <p className="mt-8 text-xs text-gray-400">
+          🔐 켄텍 구글 계정으로 로그인하면 자동으로 가입돼요
+        </p>
       </div>
     </div>
-  )
-}
-
-function LoginFormInner() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const justSignedUp = searchParams.get('signup') === 'success'
-  const authError = searchParams.get('error')
-
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (!email.endsWith('@kentech.ac.kr')) {
-      setError('켄텍 이메일(@kentech.ac.kr)만 사용할 수 있어요.')
-      return
-    }
-
-    setLoading(true)
-    const supabase = createClient()
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
-
-    if (signInError) {
-      if (signInError.message.includes('Invalid login credentials')) {
-        setError('이메일 또는 비밀번호가 올바르지 않아요.')
-      } else if (signInError.message.includes('Email not confirmed')) {
-        setError('이메일 인증이 완료되지 않았어요. 가입 시 받은 메일을 확인해주세요.')
-      } else {
-        setError(`로그인 실패: ${signInError.message}`)
-      }
-      return
-    }
-
-    router.push('/')
-    router.refresh()
-  }
-
-  return (
-    <>
-      {justSignedUp && (
-        <div className="mb-4 rounded-md bg-blue-50 p-3 text-sm text-blue-700">
-          📬 가입 확인 메일을 보냈어요! 메일의 링크를 클릭한 뒤 로그인해주세요.
-        </div>
-      )}
-
-      {authError === 'auth_failed' && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-          인증에 실패했어요. 다시 시도해주세요.
-        </div>
-      )}
-
-      {authError === 'not_kentech' && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
-          켄텍 이메일(@kentech.ac.kr) 계정만 로그인할 수 있어요.
-        </div>
-      )}
-
-      <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="mb-1 block text-sm font-medium">이메일</label>
-          <input
-            id="email" type="email" value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@kentech.ac.kr" required autoComplete="email"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="mb-1 block text-sm font-medium">비밀번호</label>
-          <input
-            id="password" type="password" value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••" required autoComplete="current-password"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          />
-        </div>
-
-        <button type="submit" disabled={loading}
-          className="w-full rounded-md bg-indigo-500 px-4 py-2 font-medium text-white hover:bg-indigo-600 disabled:bg-gray-400">
-          {loading ? '로그인 중...' : '로그인'}
-        </button>
-      </form>
-
-      <div className="my-4 flex items-center gap-3 text-xs text-gray-400">
-        <div className="h-px flex-1 bg-gray-200"></div>
-        또는
-        <div className="h-px flex-1 bg-gray-200"></div>
-      </div>
-
-      <GoogleOneTap />
-
-      {error && (
-        <div className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
-
-      <div className="mt-6 text-center text-sm text-gray-600">
-        켄근마켓이 처음이세요?{' '}
-        <Link href="/signup" className="font-medium text-indigo-600 hover:underline">회원가입</Link>
-      </div>
-
-      <p className="mt-6 text-xs text-gray-500">🔐 켄텍 학생(@kentech.ac.kr)만 가입할 수 있어요</p>
-    </>
   )
 }
