@@ -7,6 +7,7 @@ import ProductGallery from '@/components/ProductGallery'
 import SendMessageButton from '@/components/SendMessageButton'
 import ReportButton from '@/components/ReportButton'
 import AdminDeleteButton from '@/components/AdminDeleteButton'
+import OfferSection from '@/components/OfferSection'
 
 const statusLabels = {
   selling: { label: '판매중', color: 'bg-green-100 text-green-700' },
@@ -82,7 +83,6 @@ export default async function ProductDetailPage({
             {product.price === 0 ? '나눔' : `${product.price.toLocaleString()}원`}
           </p>
 
-          {/* 판매자 정보 + 쪽지/신고 */}
           <div className="mb-3 rounded-md bg-gray-50 p-3 text-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -112,7 +112,6 @@ export default async function ProductDetailPage({
             )}
           </div>
 
-          {/* 구매자 정보 (있을 때만) */}
           {product.buyer && (
             <div className="mb-4 rounded-md bg-blue-50 p-3 text-sm">
               <p className="text-blue-700">
@@ -143,6 +142,16 @@ export default async function ProductDetailPage({
             isLoggedIn={!!user}
             currentUserId={user?.id ?? null}
           />
+
+          {product.status === 'selling' && (
+            <OfferSection
+              productId={product.id}
+              sellerId={product.user_id}
+              currentUserId={user?.id ?? null}
+              isLoggedIn={!!user}
+              listedPrice={product.price}
+            />
+          )}
 
           {isAdmin && !isOwner && (
             <AdminDeleteButton table="products" id={product.id} redirectTo="/products" />
