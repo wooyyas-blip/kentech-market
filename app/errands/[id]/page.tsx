@@ -6,6 +6,7 @@ import CommentSection from '@/components/CommentSection'
 import SendMessageButton from '@/components/SendMessageButton'
 import ReportButton from '@/components/ReportButton'
 import AdminDeleteButton from '@/components/AdminDeleteButton'
+import UserFlags from '@/components/UserFlags'
 
 const statusLabels = {
   open: { label: '🙋 요청중', color: 'bg-blue-100 text-blue-700' },
@@ -27,7 +28,7 @@ export default async function ErrandDetailPage({
     .from('errands')
     .select(`
       *,
-      requester:users!errands_user_id_fkey (id, nickname, email, manner_temperature, is_unpaid),
+      requester:users!errands_user_id_fkey (id, nickname, email, manner_temperature),
       acceptor:users!errands_accepted_by_fkey (id, nickname, email, manner_temperature)
     `)
     .eq('id', id)
@@ -39,6 +40,17 @@ export default async function ErrandDetailPage({
     .from('ratings')
     .select('id', { count: 'exact', head: true })
     .eq('rated_id', errand.user_id)
+
+  // 요청자/수락자 표식 조회
+  const flagUserIds = [errand.user_id, errand.accepted_by].filter(Boolean) as string[]
+  const flagsByUser: Record<string, { flag_type: string }[]> = {}
+  if (flagUserIds.length > 0) {
+    const { data: flags } = await supabase
+      .from('user_flags').select('user_id, flag_type').in('user_id', flagUserIds)
+    for (const f of flags ?? []) {
+      (flagsByUser[f.user_id] ??= []).push({ flag_type: f.flag_type })
+    }
+  }
 
   const status = statusLabels[(errand.status as keyof typeof statusLabels) || 'open']
   const isRequester = user?.id === errand.user_id
@@ -54,7 +66,7 @@ export default async function ErrandDetailPage({
   const deadlineText = errand.deadline
     ? new Date(errand.deadline).toLocaleString('ko-KR', {
         year: 'numeric', month: 'long', day: 'numeric',
-        hour: '2-digit', minute: '2-digit',
+        hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul',
       })
     : '미정'
 
@@ -72,6 +84,7 @@ export default async function ErrandDetailPage({
       </p>
 
       <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2 text-sm">
+        {/* 요청자 */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-gray-500">요청자: </span>
@@ -81,27 +94,44 @@ export default async function ErrandDetailPage({
             <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
               🌡️ {requesterTemp.toFixed(1)}℃
             </span>
-            <span className="text-xs text-gray-500">
-              · 후기 {requesterRatingCount ?? 0}개
-            </span>
-            {errand.requester?.is_unpaid && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠️ 미입금자</span>
-            )}
+            <span className="text-xs text-gray-500">· 후기 {requesterRatingCount ?? 0}개</span>
+            <UserFlags flags={flagsByUser[errand.user_id] ?? []} />
           </div>
           {user && !isRequester && (
             <SendMessageButton partnerId={errand.user_id} />
           )}
         </div>
-        <div>
-          <span className="text-gray-500">수락자: </span>
-          {errand.acceptor ? (
-            <Link href={`/users/${errand.accepted_by}`} className="font-medium hover:underline">
-              {errand.acceptor.nickname}
-            </Link>
-          ) : (
-            <span className="font-medium">아직 없음</span>
+
+        {/* 수락자 (도와주는 사람) */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-gray-500">수락자: </span>
+            {errand.acceptor ? (
+              <>
+                <Link href={`/users/${errand.accepted_by}`} className="font-medium hover:underline">
+                  {errand.acceptor.nickname}
+                </Link>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                  🌡️ {Number(errand.acceptor.manner_temperature ?? 36.5).toFixed(1)}℃
+                </span>
+                <UserFlags flags={flagsByUser[errand.accepted_by] ?? []} />
+                {errand.status === 'in_progress' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">🏃 도와주는 중</span>
+                )}
+                {errand.status === 'done' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">✅ 도와줬어요</span>
+                )}
+              </>
+            ) : (
+              <span className="font-medium">아직 없음</span>
+            )}
+          </div>
+          {/* 요청자가 수락자에게 쪽지/신고 가능 */}
+          {user && isRequester && errand.acceptor && (
+            <SendMessageButton partnerId={errand.accepted_by} />
           )}
         </div>
+
         <div>
           <span className="text-gray-500">마감기한: </span>
           <span className="font-medium">⏰ {deadlineText}</span>
@@ -109,9 +139,16 @@ export default async function ErrandDetailPage({
         <div>
           <span className="text-gray-500">등록일: </span>
           <span className="font-medium">
-            {new Date(errand.created_at).toLocaleDateString('ko-KR')}
+            {new Date(errand.created_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
           </span>
         </div>
+
+        {/* 신고: 요청자는 수락자 신고 / 그 외 로그인 유저는 요청자 신고 */}
+        {user && isRequester && errand.acceptor && (
+          <div className="pt-2 border-t border-gray-200">
+            <ReportButton reportedId={errand.accepted_by} errandId={errand.id} />
+          </div>
+        )}
         {user && !isRequester && (
           <div className="pt-2 border-t border-gray-200">
             <ReportButton reportedId={errand.user_id} errandId={errand.id} />
