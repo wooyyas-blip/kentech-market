@@ -1,11 +1,12 @@
 ﻿import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import ErrandActions from './ErrandActions'
 import CommentSection from '@/components/CommentSection'
 import SendMessageButton from '@/components/SendMessageButton'
+import ReportButton from '@/components/ReportButton'
+import AdminDeleteButton from '@/components/AdminDeleteButton'
 
-// 변경 사항 (v3):
-// - 요청자 옆에 매너온도 + 받은 후기 개수 표시
 const statusLabels = {
   open: { label: '🙋 요청중', color: 'bg-blue-100 text-blue-700' },
   in_progress: { label: '🏃 진행중', color: 'bg-yellow-100 text-yellow-700' },
@@ -26,7 +27,7 @@ export default async function ErrandDetailPage({
     .from('errands')
     .select(`
       *,
-      requester:users!errands_user_id_fkey (id, nickname, email, manner_temperature),
+      requester:users!errands_user_id_fkey (id, nickname, email, manner_temperature, is_unpaid),
       acceptor:users!errands_accepted_by_fkey (id, nickname, email, manner_temperature)
     `)
     .eq('id', id)
@@ -34,7 +35,6 @@ export default async function ErrandDetailPage({
 
   if (error || !errand) notFound()
 
-  // 요청자가 받은 후기 개수
   const { count: requesterRatingCount } = await supabase
     .from('ratings')
     .select('id', { count: 'exact', head: true })
@@ -44,6 +44,12 @@ export default async function ErrandDetailPage({
   const isRequester = user?.id === errand.user_id
   const isAcceptor = user?.id === errand.accepted_by
   const requesterTemp = Number(errand.requester?.manner_temperature ?? 36.5)
+
+  let isAdmin = false
+  if (user) {
+    const { data: me } = await supabase.from('users').select('is_admin').eq('id', user.id).single()
+    isAdmin = !!me?.is_admin
+  }
 
   const deadlineText = errand.deadline
     ? new Date(errand.deadline).toLocaleString('ko-KR', {
@@ -69,15 +75,18 @@ export default async function ErrandDetailPage({
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-gray-500">요청자: </span>
-            <span className="font-medium">
+            <Link href={`/users/${errand.user_id}`} className="font-medium hover:underline">
               {errand.requester?.nickname || '알 수 없음'}
-            </span>
+            </Link>
             <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
               🌡️ {requesterTemp.toFixed(1)}℃
             </span>
             <span className="text-xs text-gray-500">
               · 후기 {requesterRatingCount ?? 0}개
             </span>
+            {errand.requester?.is_unpaid && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠️ 미입금자</span>
+            )}
           </div>
           {user && !isRequester && (
             <SendMessageButton partnerId={errand.user_id} />
@@ -85,9 +94,13 @@ export default async function ErrandDetailPage({
         </div>
         <div>
           <span className="text-gray-500">수락자: </span>
-          <span className="font-medium">
-            {errand.acceptor?.nickname || '아직 없음'}
-          </span>
+          {errand.acceptor ? (
+            <Link href={`/users/${errand.accepted_by}`} className="font-medium hover:underline">
+              {errand.acceptor.nickname}
+            </Link>
+          ) : (
+            <span className="font-medium">아직 없음</span>
+          )}
         </div>
         <div>
           <span className="text-gray-500">마감기한: </span>
@@ -99,6 +112,11 @@ export default async function ErrandDetailPage({
             {new Date(errand.created_at).toLocaleDateString('ko-KR')}
           </span>
         </div>
+        {user && !isRequester && (
+          <div className="pt-2 border-t border-gray-200">
+            <ReportButton reportedId={errand.user_id} errandId={errand.id} />
+          </div>
+        )}
       </div>
 
       {errand.description && (
@@ -125,6 +143,10 @@ export default async function ErrandDetailPage({
         <p className="text-sm text-gray-500 text-center py-4">
           심부름을 수락하려면 로그인이 필요해요.
         </p>
+      )}
+
+      {isAdmin && !isRequester && (
+        <AdminDeleteButton table="errands" id={errand.id} redirectTo="/errands" />
       )}
 
       <CommentSection postId={errand.id} postType="errand" />

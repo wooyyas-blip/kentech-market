@@ -4,6 +4,9 @@ import Link from 'next/link'
 import ProductActions from './ProductActions'
 import CommentSection from '@/components/CommentSection'
 import ProductGallery from '@/components/ProductGallery'
+import SendMessageButton from '@/components/SendMessageButton'
+import ReportButton from '@/components/ReportButton'
+import AdminDeleteButton from '@/components/AdminDeleteButton'
 
 const statusLabels = {
   selling: { label: '판매중', color: 'bg-green-100 text-green-700' },
@@ -11,10 +14,6 @@ const statusLabels = {
   sold: { label: '거래완료', color: 'bg-gray-200 text-gray-600' },
 }
 
-// 변경 사항 (v5):
-// - buyer JOIN 추가 → 구매자 닉네임 표시
-// - ProductActions에 새 props (buyerId, currentUserId) 전달
-// - sold 상태에 구매자 정보 박스 추가
 export default async function ProductDetailPage({
   params,
 }: {
@@ -29,7 +28,7 @@ export default async function ProductDetailPage({
     .from('products')
     .select(`
       *,
-      seller:users!products_user_id_fkey (id, nickname, email, manner_temperature),
+      seller:users!products_user_id_fkey (id, nickname, email, manner_temperature, is_unpaid),
       buyer:users!products_buyer_id_fkey (id, nickname, email, manner_temperature)
     `)
     .eq('id', id)
@@ -46,6 +45,13 @@ export default async function ProductDetailPage({
 
   const statusInfo = statusLabels[product.status as keyof typeof statusLabels]
   const sellerTemp = Number(product.seller?.manner_temperature ?? 36.5)
+  const isOwner = user?.id === product.user_id
+
+  let isAdmin = false
+  if (user) {
+    const { data: me } = await supabase.from('users').select('is_admin').eq('id', user.id).single()
+    isAdmin = !!me?.is_admin
+  }
 
   return (
     <div className="mx-auto max-w-3xl p-6">
@@ -76,17 +82,34 @@ export default async function ProductDetailPage({
             {product.price === 0 ? '나눔' : `${product.price.toLocaleString()}원`}
           </p>
 
-          {/* 판매자 정보 */}
+          {/* 판매자 정보 + 쪽지/신고 */}
           <div className="mb-3 rounded-md bg-gray-50 p-3 text-sm">
-            <p className="text-gray-500">판매자</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-medium text-gray-900">{product.seller?.nickname ?? '익명'}</p>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
-                🌡️ {sellerTemp.toFixed(1)}℃
-              </span>
-              <span className="text-xs text-gray-500">· 후기 {sellerRatingCount ?? 0}개</span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-gray-500">판매자</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link href={`/users/${product.user_id}`} className="font-medium text-gray-900 hover:underline">
+                    {product.seller?.nickname ?? '익명'}
+                  </Link>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                    🌡️ {sellerTemp.toFixed(1)}℃
+                  </span>
+                  <span className="text-xs text-gray-500">· 후기 {sellerRatingCount ?? 0}개</span>
+                  {product.seller?.is_unpaid && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700">⚠️ 미입금자</span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500">{product.seller?.email}</p>
+              </div>
+              {user && !isOwner && (
+                <SendMessageButton partnerId={product.user_id} />
+              )}
             </div>
-            <p className="text-xs text-gray-500">{product.seller?.email}</p>
+            {user && !isOwner && (
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <ReportButton reportedId={product.user_id} productId={product.id} />
+              </div>
+            )}
           </div>
 
           {/* 구매자 정보 (있을 때만) */}
@@ -95,7 +118,9 @@ export default async function ProductDetailPage({
               <p className="text-blue-700">
                 {product.status === 'sold' ? '구매자' : '구매 요청자'}
               </p>
-              <p className="font-medium text-gray-900">{product.buyer.nickname}</p>
+              <Link href={`/users/${product.buyer_id}`} className="font-medium text-gray-900 hover:underline">
+                {product.buyer.nickname}
+              </Link>
             </div>
           )}
 
@@ -118,6 +143,10 @@ export default async function ProductDetailPage({
             isLoggedIn={!!user}
             currentUserId={user?.id ?? null}
           />
+
+          {isAdmin && !isOwner && (
+            <AdminDeleteButton table="products" id={product.id} redirectTo="/products" />
+          )}
 
           <CommentSection postId={product.id} postType="product" />
         </div>
